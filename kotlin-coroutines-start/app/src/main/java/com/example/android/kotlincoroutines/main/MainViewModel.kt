@@ -19,7 +19,8 @@ package com.example.android.kotlincoroutines.main
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.android.kotlincoroutines.util.BACKGROUND
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.*
 
 /**
  * MainViewModel designed to store and manage UI-related data in a lifecycle conscious way. This
@@ -28,6 +29,14 @@ import com.example.android.kotlincoroutines.util.BACKGROUND
  * results after the new Fragment or Activity is available.
  */
 class MainViewModel : ViewModel() {
+
+    // Make a network request without blocking the UI thread.
+    private fun makeNetworkRequest() {
+        viewModelScope.launch(Dispatchers.IO) {
+            // slowFetch()
+        }
+        // No need to override onCleared()
+    }
 
     /**
      * Request a snackbar to display a string.
@@ -39,6 +48,9 @@ class MainViewModel : ViewModel() {
      */
     private val _snackBar = MutableLiveData<String>()
 
+    private val viewmodelJob = Job()
+
+    private val uiScope = CoroutineScope(Dispatchers.Main + viewmodelJob)
     /**
      * Request a snackbar to display a string.
      */
@@ -49,11 +61,15 @@ class MainViewModel : ViewModel() {
      * Wait one second then display a snackbar.
      */
     fun onMainViewClicked() {
-        // TODO: Replace with coroutine implementation
-        BACKGROUND.submit {
-            Thread.sleep(1_000)
-            // use postValue since we're in a background thread
-            _snackBar.postValue("Hello, from threads!")
+//        // TODO: Replace with coroutine implementation
+//        BACKGROUND.submit {
+//            Thread.sleep(1_000)
+//            // use postValue since we're in a background thread
+//            _snackBar.postValue("Hello, from threads!")
+//        }
+        viewModelScope.launch {
+            delay(1000)
+            _snackBar.value = "Hello, from coroutines!"
         }
     }
 
@@ -62,5 +78,10 @@ class MainViewModel : ViewModel() {
      */
     fun onSnackbarShown() {
         _snackBar.value = null
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        viewmodelJob.cancel()
     }
 }
