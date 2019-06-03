@@ -21,6 +21,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.android.kotlincoroutines.util.singleArgViewModelFactory
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 /**
@@ -112,6 +113,7 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
 //                }
 //            }
 //        }
+        /*
         viewModelScope.launch {
             try {
                 _spinner.value = true
@@ -121,6 +123,10 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
             } finally {
                 _spinner.value = false
             }
+        }
+        */
+        launchDataLoad {
+            repository.refreshTitle()
         }
     }
 
@@ -136,4 +142,16 @@ class MainViewModel(private val repository: TitleRepository) : ViewModel() {
      *              spinner will stop
      */
     // TODO: Add launchDataLoad here then refactor refreshTitle to use it
+    private fun launchDataLoad(block: suspend () -> Unit): Job {
+        return viewModelScope.launch {
+            try {
+                _spinner.value = true
+                block()
+            } catch (error: TitleRefreshError) {
+                _snackBar.value = error.message
+            } finally {
+                _spinner.value = false
+            }
+        }
+    }
 }
