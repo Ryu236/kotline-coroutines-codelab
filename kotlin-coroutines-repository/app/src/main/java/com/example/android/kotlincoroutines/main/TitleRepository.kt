@@ -122,7 +122,6 @@ class TitleRepository(private val network: MainNetwork, private val titleDao: Ti
         class Error(val error: Throwable) : RefreshState()
     }
 }
-*/
 // TODO: Remove this typealias after rewriting refreshTitle
 typealias TitleStateListener = (TitleRepository.RefreshState) -> Unit
 
